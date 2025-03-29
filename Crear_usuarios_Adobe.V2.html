@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Usuarios y Añadir al Grupo Adobe Connect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            width: 100%;
+            background-color: #007BFF;
+            padding: 5px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        header img {
+            height: 50px;
+        }
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            width: 80%;
+            margin-top: 20px;
+        }
+        .form-container {
+            width: 45%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #007BFF;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .separate-container {
+            width: 80%;
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        function crearUsuarios() {
+            const usuarios = document.getElementById('usuarios').value.split('\n');
+
+            usuarios.forEach(usuario => {
+                const [nombre, apellidos, login, contrasena] = usuario.split(',');
+                const createUserUrl = `https://unir.adobeconnect.com/api/xml?action=principal-update&first-name=${nombre.trim()}&last-name=${apellidos.trim()}&login=${login.trim()}&password=${contrasena.trim()}&type=user&has-children=0`;
+
+                // Abrir una nueva pestaña para crear el usuario
+                const nuevaPestana = window.open(createUserUrl, '_blank');
+                nuevaPestana.focus();
+            });
+
+            alert('Usuarios creados. Revisa las nuevas pestañas abiertas.');
+        }
+
+        function añadirAlGrupo() {
+            const principalIds = document.getElementById('principalIds').value.split('\n');
+            const groupId = '856678955'; // ID del grupo UNir_Profesores
+
+            principalIds.forEach(principalId => {
+                const addToGroupUrl = `https://unir.adobeconnect.com/api/xml?action=group-membership-update&group-id=${groupId}&principal-id=${principalId.trim()}&is-member=true`;
+
+                // Abrir una nueva pestaña para añadir el usuario al grupo
+                const nuevaPestana = window.open(addToGroupUrl, '_blank');
+                nuevaPestana.focus();
+            });
+
+            alert('Usuarios añadidos al grupo. Revisa las nuevas pestañas abiertas.');
+        }
+
+        function mostrarIdUsuarioCreado() {
+            const usuarios = document.getElementById('usuariosParaId').value.split('\n');
+            usuarios.forEach(usuario => {
+                const principalListUrl = `https://unir.adobeconnect.com/api/xml?action=principal-list&filter-login=${usuario.trim()}`;
+                window.open(principalListUrl, '_blank');
+            });
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/01/UNIR_Logo.svg" alt="UNIR Logo">
+    </header>
+    <h1>Crear Usuarios y Añadir al Grupo Adobe Connect</h1>
+    <div class="container">
+        <div class="form-container">
+            <h2>Crear Usuarios</h2>
+            <form onsubmit="event.preventDefault(); crearUsuarios();">
+                <label for="usuarios">Introduce los datos de los usuarios (nombre, apellidos, usuario, contraseña) separados por comas y cada usuario en una nueva línea:</label>
+                <textarea id="usuarios" name="usuarios" rows="10" required></textarea>
+                <button type="submit">Crear Usuarios</button>
+            </form>
+        </div>
+        <div class="form-container">
+            <h2>Añadir al Grupo</h2>
+            <form onsubmit="event.preventDefault(); añadirAlGrupo();">
+                <label for="principalIds">Introduce los principal-id de los usuarios creados, cada uno en una nueva línea:</label>
+                <textarea id="principalIds" name="principalIds" rows="10" required></textarea>
+                <button type="submit">Añadir usuarios al grupo Unir_profesores</button>
+            </form>
+        </div>
+    </div>
+    <div class="separate-container">
+        <h2>Obtener ID de Usuarios</h2>
+        <form onsubmit="event.preventDefault(); mostrarIdUsuarioCreado();">
+            <label for="usuariosParaId">Introduce los usuarios para obtener el ID, cada uno en una nueva línea:</label>
+            <textarea id="usuariosParaId" name="usuariosParaId" rows="10" required></textarea>
+            <button type="submit">Mostrar id usuarios creados</button>
+        </form>
+    </div>
+</body>
+</html>
