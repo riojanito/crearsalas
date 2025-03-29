@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Adobe Connect - Crear Salas y anfitrión adminsoporte</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header {
+            width: 100%;
+            background-color: #007BFF;
+            padding: 5px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        header img {
+            height: 50px;
+        }
+        h1 {
+            color: #333;
+            margin-top: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            width: 80%;
+            margin-top: 20px;
+        }
+        .form-container {
+            width: 45%;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #007BFF;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        iframe {
+            width: 80%;
+            height: 400px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+    </style>
+    <script>
+        function crearSalas() {
+            const salas = document.getElementById('salas').value.split('\n');
+            const folderId = '4705802834'; // ID de la carpeta destino
+            let scoIds = []; // Array para almacenar los SCO-ids
+
+            // Recorremos las salas y obtenemos el SCO-id para cada una
+            salas.forEach(sala => {
+                const [nombreSala, urlSala] = sala.split(',');
+                const scoUpdateUrl = `https://unir.adobeconnect.com/api/xml?action=sco-update&type=meeting&folder-id=${folderId}&name=${nombreSala.trim()}&url-path=${urlSala.trim()}&source-sco-id=12094367675`;
+
+                // Realizamos la solicitud XMLHttpRequest para obtener el SCO-id
+                fetch(scoUpdateUrl)
+                    .then(response => response.text())
+                    .then(data => {
+                        // Procesamos la respuesta XML para obtener el SCO-id
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(data, "text/xml");
+                        const scoId = xmlDoc.querySelector('sco-id') ? xmlDoc.querySelector('sco-id').textContent : 'No SCO-id found';
+
+                        // Guardamos el SCO-id
+                        scoIds.push(scoId);
+
+                        // Actualizamos el iframe con el SCO-id
+                        const iframe = document.getElementById('resultFrame');
+                        const iframeDoc = iframe.contentWindow.document;
+                        iframeDoc.open();
+                        iframeDoc.write('<h2>SCO-IDs</h2>');
+                        scoIds.forEach(sco => {
+                            iframeDoc.write(`<p>SCO-id: ${sco}</p>`);
+                        });
+                        iframeDoc.close();
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener el SCO-id:', error);
+                    });
+            });
+        }
+
+        function actualizarPermisos() {
+            const aclIds = document.getElementById('aclIds').value.split('\n');
+            const principalId = '834430770'; // ID del usuario anfitrión
+
+            aclIds.forEach(aclId => {
+                const permissionsUpdateUrl = `https://unir.adobeconnect.com/api/xml?action=permissions-update&acl-id=${aclId.trim()}&principal-id=${principalId}&permission-id=host`;
+                window.open(permissionsUpdateUrl, '_blank');
+            });
+
+            alert('Permisos actualizados. Revisa las nuevas pestañas abiertas.');
+        }
+
+        function mostrarScoId() {
+            const scoContentsUrl = 'https://unir.adobeconnect.com/api/xml?action=sco-contents&sco-id=4705802834';
+            window.open(scoContentsUrl, '_blank');
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/01/UNIR_Logo.svg" alt="UNIR Logo">
+    </header>
+    <h1>Adobe Connect - Crear Salas y anfitrión adminsoporte</h1>
+    <div class="container">
+        <div class="form-container">
+            <h2>Crear Salas</h2>
+            <form onsubmit="event.preventDefault(); crearSalas();">
+                <label for="salas">Introduce las salas (nombre, URL) separadas por comas y cada sala en una nueva línea:</label>
+                <textarea id="salas" name="salas" rows="10" required></textarea>
+                <button type="submit">Crear Salas</button>
+            </form>
+        </div>
+        <div class="form-container">
+            <h2>Añadir el usuario adminsoporte como anfitrión</h2>
+            <form onsubmit="event.preventDefault(); actualizarPermisos();">
+                <label for="aclIds">Introduce los sco-id de las salas, cada uno en una nueva línea:</label>
+                <textarea id="aclIds" name="aclIds" rows="10" required></textarea>
+                <button type="submit">Añadir adminsoporte como anfitrión</button>
+            </form>
+            <button onclick="mostrarScoId()">Mostrar Sco-id</button>
+        </div>
+    </div>
+    <iframe id="resultFrame"></iframe>
+</body>
+</html>
